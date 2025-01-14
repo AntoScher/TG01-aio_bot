@@ -8,6 +8,7 @@ from aiogram.types import Message
 import requests
 import re
 import yt_dlp
+from googleapiclient.discovery import build
 
 # Загрузка переменных окружения из файла .env
 load_dotenv()
@@ -23,18 +24,19 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
+# Инициализация YouTube API клиента
+youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
 # Пример хендлера с использованием CommandStart
 @dp.message(CommandStart())
 async def start(message: Message):
-    await message.answer("Привет! Отправьте мне ссылку на YouTube-видео, и я пришлю информацию о нем.")
-
+    await message.answer("Привет! Отправьте мне текстовый запрос и получишь ссылку на YouTube-видео, "
+                         "или отправьте мне ссылку на YouTube-видео и я пришлю информацию о нем.")
 
 # Пример хендлера с использованием Command
 @dp.message(Command(commands=["help"]))
 async def help_command(message: Message):
-    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/weather")
-
+    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/weather\n/look [описание]")
 
 # Прописываем хендлер для команды /weather
 @dp.message(Command(commands=["weather"]))
@@ -50,7 +52,6 @@ async def weather_command(message: Message):
         await message.answer(f"Погода в {city.capitalize()}:\nТемпература: {temperature}°C\nОписание: {description}")
     else:
         await message.answer("Не удалось получить прогноз погоды. Пожалуйста, попробуйте позже.")
-
 
 # Прописываем хендлер для обработки ссылок на YouTube
 @dp.message(lambda message: re.match(r'https?://(www\.)?youtube\.com/watch\?v=.+', message.text))
@@ -72,15 +73,77 @@ async def youtube_info(message: Message):
         logging.error(f"Произошла ошибка при обработке ссылки: {e}")
         await message.reply(f"Произошла ошибка при обработке ссылки. Ошибка: {str(e)}")
 
+# Прописываем хендлер для команды /look
+@dp.message(Command(commands=["look"]))
+async def look_command(message: Message):
+    query = message.text[len("/look "):].strip()
+    if not query:
+        await message.reply("Пожалуйста, предоставьте текстовое описание для поиска.")
+        logging.info("Запрос пустой.")
+        return
+
+    logging.info(f"Поисковый запрос: {query}")
+
+    try:
+        search_response = youtube.search().list(
+            q=query,
+            part="snippet",
+            maxResults=1
+        ).execute()
+
+        logging.info(f"Ответ API: {search_response}")
+
+        if 'items' in search_response and search_response['items']:
+            video_id = search_response['items'][0]['id']['videoId']
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            video_title = search_response['items'][0]['snippet']['title']
+            logging.info(f"Видео найдено: {video_title}, {video_url}")
+            await message.reply(f"**Название:** {video_title}\n**Ссылка:** {video_url}")
+        else:
+            logging.info("Видео по вашему запросу не найдено.")
+            await message.reply("Видео по вашему запросу не найдено.")
+    except Exception as e:
+        logging.error(f"Произошла ошибка при выполнении поиска: {e}")
+        await message.reply(f"Произошла ошибка при выполнении поиска. Ошибка: {str(e)}")
+
+
+
+
+
+
+"""@dp.message(Command(commands=["look"]))
+async def look_command(message: Message):
+    query = message.text[len("/look "):]
+    if not query:
+        await message.reply("Пожалуйста, предоставьте текстовое описание для поиска.")
+        return
+
+    try:
+        search_response = youtube.search().list(
+            q=query,
+            part="snippet",
+            maxResults=1
+        ).execute()
+
+        if search_response['items']:
+            video_id = search_response['items'][0]['id']['videoId']
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            video_title = search_response['items'][0]['snippet']['title']
+            await message.reply(f"**Название:** {video_title}\n**Ссылка:** {video_url}")
+        else:
+            await message.reply("Видео по вашему запросу не найдено.")
+    except Exception as e:
+        logging.error(f"Произошла ошибка при выполнении поиска: {e}")
+        await message.reply(f"Произошла ошибка при выполнении поиска. Ошибка: {str(e)}")"""
 
 async def main():
     dp.message.register(start, CommandStart())
     dp.message.register(help_command, Command(commands=["help"]))
-    dp.message.register(youtube_info,
-                        lambda message: re.match(r'https?://(www\.)?youtube\.com/watch\?v=.+', message.text))
+    dp.message.register(weather_command, Command(commands=["weather"]))
+    dp.message.register(youtube_info, lambda message: re.match(r'https?://(www\.)?youtube\.com/watch\?v=.+', message.text))
+    dp.message.register(look_command, Command(commands=["look"]))
 
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
