@@ -30,8 +30,8 @@ youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 # Пример хендлера с использованием CommandStart
 @dp.message(CommandStart())
 async def start(message: Message):
-    await message.answer("Привет! Отправьте мне текстовый запрос и получишь ссылку на YouTube-видео, "
-                         "или отправьте мне ссылку на YouTube-видео и я пришлю информацию о нем.")
+    await message.answer("Привет! Отправьте мне текстовый запрос и получишь ссылку на YouTube-видео (/look), "
+                         "или отправьте мне ссылку на YouTube-видео и я пришлю информацию о нем (/start).")
 
 # Пример хендлера с использованием Command
 @dp.message(Command(commands=["help"]))
@@ -111,30 +111,6 @@ async def look_command(message: Message):
 
 
 
-"""@dp.message(Command(commands=["look"]))
-async def look_command(message: Message):
-    query = message.text[len("/look "):]
-    if not query:
-        await message.reply("Пожалуйста, предоставьте текстовое описание для поиска.")
-        return
-
-    try:
-        search_response = youtube.search().list(
-            q=query,
-            part="snippet",
-            maxResults=1
-        ).execute()
-
-        if search_response['items']:
-            video_id = search_response['items'][0]['id']['videoId']
-            video_url = f"https://www.youtube.com/watch?v={video_id}"
-            video_title = search_response['items'][0]['snippet']['title']
-            await message.reply(f"**Название:** {video_title}\n**Ссылка:** {video_url}")
-        else:
-            await message.reply("Видео по вашему запросу не найдено.")
-    except Exception as e:
-        logging.error(f"Произошла ошибка при выполнении поиска: {e}")
-        await message.reply(f"Произошла ошибка при выполнении поиска. Ошибка: {str(e)}")"""
 
 async def main():
     dp.message.register(start, CommandStart())
