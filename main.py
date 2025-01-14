@@ -4,12 +4,10 @@ import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
-from aiogram.handlers import MessageHandler
 from aiogram.types import Message
 import requests
 import re
-from pytube import YouTube
-
+import yt_dlp
 
 # Загрузка переменных окружения из файла .env
 load_dotenv()
@@ -54,10 +52,7 @@ async def weather_command(message: Message):
         await message.answer("Не удалось получить прогноз погоды. Пожалуйста, попробуйте позже.")
 
 
-
-
-
-
+# Прописываем хендлер для обработки ссылок на YouTube
 @dp.message(lambda message: re.match(r'https?://(www\.)?youtube\.com/watch\?v=.+', message.text))
 async def youtube_info(message: Message):
     url = message.text
@@ -66,11 +61,13 @@ async def youtube_info(message: Message):
         return
 
     try:
-        yt = YouTube(url)
-        title = yt.title
-        author = yt.author
-        description = yt.description
-        await message.reply(f"**Название:** {title}\n**Автор:** {author}\n**Описание:** {description}")
+        ydl_opts = {}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=False)
+            title = info_dict.get('title', None)
+            author = info_dict.get('uploader', None)
+            description = info_dict.get('description', None)
+            await message.reply(f"**Название:** {title}\n**Автор:** {author}\n**Описание:** {description}")
     except Exception as e:
         logging.error(f"Произошла ошибка при обработке ссылки: {e}")
         await message.reply(f"Произошла ошибка при обработке ссылки. Ошибка: {str(e)}")
