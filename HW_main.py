@@ -24,7 +24,7 @@ dp = Dispatcher()
 # Пример хендлера с использованием CommandStart
 @dp.message(CommandStart())
 async def start(message: Message):
-    await message.answer("Привет, я бот, который расскажет про погоду в вашем городе!")
+    await message.answer(f"Привет {message.from_user.first_name}, я бот, который расскажет про погоду в вашем городе!")
 
 
 # Пример хендлера с использованием Command
@@ -56,7 +56,10 @@ async def weather_command(message: Message):
 
 @dp.message()
 async def start(message: Message):
-    await message.answer("Сформулируй вопрос по другому")
+    if message.text.lower() == 'test':
+        await message.answer('Тестируем')
+    else: await message.answer("Сформулируй вопрос по другому")
+    await message.send_copy(chat_id=message.chat.id)
 async def main():
     await dp.start_polling(bot)
 

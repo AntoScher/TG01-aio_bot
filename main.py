@@ -2,10 +2,11 @@ import os
 from dotenv import load_dotenv
 import logging
 import asyncio
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 import requests
+import random
 import re
 import yt_dlp
 from googleapiclient.discovery import build
@@ -36,7 +37,7 @@ async def start(message: Message):
 # Пример хендлера с использованием Command
 @dp.message(Command(commands=["help"]))
 async def help_command(message: Message):
-    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/weather\n/look [описание]")
+    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/photo\n/weather\n/look [описание]")
 
 # Прописываем хендлер для команды /weather
 @dp.message(Command(commands=["weather"]))
@@ -45,13 +46,17 @@ async def weather_command(message: Message):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
     response = requests.get(url)
     data = response.json()
-
     if data["cod"] == 200:
         temperature = data["main"]["temp"]
         description = data["weather"][0]["description"]
         await message.answer(f"Погода в {city.capitalize()}:\nТемпература: {temperature}°C\nОписание: {description}")
     else:
         await message.answer("Не удалось получить прогноз погоды. Пожалуйста, попробуйте позже.")
+@dp.message(Command('photo'))
+async def photo(message: Message):
+    list = ['https://cdn2.tu-tu.ru/image/pagetree_node_data/1/5d6d5ea9f0b26d219a34767dea7b1140/']
+    rand_photo = random.choice(list)
+    await message.answer_photo(photo=rand_photo, caption='Это Минск')
 
 # Прописываем хендлер для обработки ссылок на YouTube
 @dp.message(lambda message: re.match(r'https?://(www\.)?youtube\.com/watch\?v=.+', message.text))
