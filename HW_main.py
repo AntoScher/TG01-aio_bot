@@ -1,10 +1,11 @@
 import os
 from dotenv import load_dotenv
 import logging
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 import requests
+import random
 
 # Загрузка переменных окружения из файла .env
 load_dotenv()
@@ -29,7 +30,13 @@ async def start(message: Message):
 # Пример хендлера с использованием Command
 @dp.message(Command(commands=["help"]))
 async def help_command(message: Message):
-    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/weather")
+    await message.answer("Этот бот умеет выполнять команды:\n/start\n/help\n/weather\n/photo")
+
+@dp.message(Command(commands=["photo"]))
+async def photo(message: Message):
+    list = ['https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg']
+    rand_photo = random.choice(list)
+    await message.answer_photo(photo=rand_photo, caption='Вот мой родной район Минска')
 
 
 # Прописываем хендлер для команды /weather
@@ -47,7 +54,9 @@ async def weather_command(message: Message):
     else:
         await message.answer("Не удалось получить прогноз погоды. Пожалуйста, попробуйте позже.")
 
-
+@dp.message()
+async def start(message: Message):
+    await message.answer("Сформулируй вопрос по другому")
 async def main():
     await dp.start_polling(bot)
 
