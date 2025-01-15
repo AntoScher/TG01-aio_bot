@@ -34,9 +34,12 @@ async def help_command(message: Message):
 
 @dp.message(Command(commands=["photo"]))
 async def photo(message: Message):
-    list = ['https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg']
+    list= [
+        'https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg',
+        'https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg'
+            ]
     rand_photo = random.choice(list)
-    await message.answer_photo(photo=rand_photo, caption='Вот мой родной район Минска')
+    await message.answer_photo(photo=rand_photo, caption='Вот мой  Минск')
 
 
 # Прописываем хендлер для команды /weather
@@ -68,3 +71,6 @@ if __name__ == "__main__":
     import asyncio
 
     asyncio.run(main())
+
+
+#'https://cdn2.tu-tu.ru/image/pagetree_node_data/1/5d6d5ea9f0b26d219a34767dea7b1140/',
