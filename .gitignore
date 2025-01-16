@@ -160,5 +160,5 @@ cython_debug/
 .idea/
 .env
 img/
-temp/
+tmp/
 test_main.py
