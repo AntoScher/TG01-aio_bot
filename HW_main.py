@@ -36,7 +36,6 @@ async def help_command(message: Message):
 async def photo(message: Message):
     list= [
         'https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg',
-        'https://img.freepik.com/free-photo/aerial-view-cityscape_181624-49144.jpg'
             ]
     rand_photo = random.choice(list)
     await message.answer_photo(photo=rand_photo, caption='Вот мой  Минск')
