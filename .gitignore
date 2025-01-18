@@ -162,3 +162,4 @@ cython_debug/
 img/
 tmp/
 test_main.py
+user_data.db
